@@ -1,7 +1,19 @@
-export const fetchLocationId = async (city) => {
-  const response = await fetch(
-    `https://www.metaweather.com/api/location/search/?query=${city}`
-  );
+//&&
+export const fetchLocationId = async ({ city, lat, long }) => {
+  let response;
+
+  if (lat && long) {
+    response = await fetch(
+      `https://www.metaweather.com//api/location/search/?lattlong=${latt},${long}`
+    );
+  } else if (city) {
+    response = await fetch(
+      `https://www.metaweather.com/api/location/search/?query=${city}`
+    );
+  } else {
+    throw Error('no city, latt, or long provided for fetchLocationId');
+  }
+
   const locations = await response.json();
   return locations[0].woeid;
 };
