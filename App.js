@@ -13,15 +13,17 @@ import SearchInput from './components/SearchInput';
 import getImageForWeather from './utils/getImageForWeather';
 import { fetchLocationId, fetchWeather } from './utils/api';
 import WeatherDetails from './components/WeatherDetails';
+import useNativeGeoLocation from './hooks/useNativeGeoLocation';
 
 export default function App() {
   const [location, setLocation] = useState('');
   const [citySearch, setCitySearch] = useState('');
-
   const [isLoading, setLoading] = useState(false);
   const [temperature, setTemperature] = useState(0);
   const [weather, setWeather] = useState('');
   const [error, setError] = useState(false);
+
+  const { geo, hasPerms: hasGeoLocPerms } = useNativeGeoLocation();
 
   const handleChangeText = useCallback(
     (value) => {
@@ -30,13 +32,11 @@ export default function App() {
     [setCitySearch]
   );
 
-  const handleUpdateLocation = async (city) => {
-    if (!city) return;
-
+  const handleUpdateLocation = async ({ city = '', latt = '', long = '' }) => {
     try {
       setLoading(true);
 
-      const locationId = await fetchLocationId({ city });
+      const locationId = await fetchLocationId({ city, latt, long });
 
       const { location, weather, temperature } = await fetchWeather(locationId);
 
@@ -54,8 +54,12 @@ export default function App() {
   };
 
   useEffect(() => {
-    handleUpdateLocation('San Francisco');
-  }, []);
+    if (hasGeoLocPerms && geo.latt && geo.long) {
+      // update whenever geo changes (which will probably only happen on app mount)
+      handleUpdateLocation({ latt: geo.latt, long: geo.long });
+      return;
+    }
+  }, [geo.latt, geo.long, hasGeoLocPerms]);
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior="padding">
@@ -88,7 +92,7 @@ export default function App() {
             placeholder="Search any city"
             value={citySearch}
             onChangeText={handleChangeText}
-            onSubmitEditing={() => handleUpdateLocation(citySearch)}
+            onSubmitEditing={() => handleUpdateLocation({ city: citySearch })}
           />
         </View>
       </ImageBackground>

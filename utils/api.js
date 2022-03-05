@@ -1,11 +1,12 @@
 //&&
-export const fetchLocationId = async ({ city, lat, long }) => {
+export const fetchLocationId = async ({ city, latt, long }) => {
   let response;
 
-  if (lat && long) {
+  if (latt && long) {
     response = await fetch(
       `https://www.metaweather.com//api/location/search/?lattlong=${latt},${long}`
     );
+    console.log({ latt, long, response });
   } else if (city) {
     response = await fetch(
       `https://www.metaweather.com/api/location/search/?query=${city}`
